@@ -1,35 +1,45 @@
-name: Build DriveDash Android
-on: [push, workflow_dispatch]
+name: DriveDash 2 Android
+on:
+  push:
+    branches: [drivedash-2]
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
 jobs:
-  build:
+  demo:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: DriveDashAndroid
     steps:
       - uses: actions/checkout@v4
-      - name: Extract project
-        working-directory: .
-        run: unzip -q DriveDashAndroid-v0.2.zip
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: node --test relay/test/relay.test.mjs
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
         with:
-          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.9'
-      - name: Fix MediaController import
-        run: |
-          sed -i '/^package com\.drivedash\.android/a import android.media.session.MediaController' app/src/main/java/com/drivedash/android/DashService.kt
-      - run: gradle :app:assembleDebug
+          gradle-version: '8.13'
+      - run: gradle :app:testDemoDebugUnitTest :app:assembleDemoDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: DriveDash-Android-APK
-          path: DriveDashAndroid/app/build/outputs/apk/debug/app-debug.apk
+          name: DriveDash2-demo-APK
+          path: app/build/outputs/apk/demo/debug/*.apk
+          if-no-files-found: error
+  live-compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+      - run: gradle :app:assembleLiveDebug
