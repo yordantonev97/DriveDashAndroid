@@ -1,0 +1,10 @@
+.gradle/
+**/build/
+local.properties
+*.jks
+*.keystore
+relay/.wrangler/
+relay/node_modules/
+relay/wrangler.toml
+relay/.dev.vars*
+relay/.env*
